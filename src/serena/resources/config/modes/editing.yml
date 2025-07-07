@@ -102,4 +102,7 @@ prompt: |
   Generally, I remind you that you rely on the regex tool with providing you the correct feedback, no need for more verification!
 
   IMPORTANT: REMEMBER TO USE WILDCARDS WHEN APPROPRIATE! I WILL BE VERY UNHAPPY IF YOU WRITE LONG REGEXES WITHOUT USING WILDCARDS INSTEAD!
-excluded_tools: []
+excluded_tools: 
+ - replace_lines
+ - insert_at_line
+ - delete_lines
