@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import os
-import platform
+import shlex
 import subprocess
 import threading
 import time
@@ -149,11 +149,12 @@ class SolidLanguageServerHandler:
         child_proc_env.update(self.process_launch_info.env)
 
         cmd = self.process_launch_info.cmd
-        is_windows = platform.system() == "Windows"
-        if not isinstance(cmd, str) and not is_windows:
-            # Since we are using the shell, we need to convert the command list to a single string
-            # on Linux/macOS
-            cmd = " ".join(cmd)
+        # Ensure cmd is always a list for subprocess.Popen with shell=False
+        if isinstance(cmd, str):
+            # Convert string command to list by splitting on whitespace
+            # Use shlex.split() to properly handle quoted arguments
+            cmd = shlex.split(cmd)
+        
         log.info("Starting language server process via command: %s", self.process_launch_info.cmd)
         self.process = subprocess.Popen(
             cmd,
@@ -163,7 +164,7 @@ class SolidLanguageServerHandler:
             env=child_proc_env,
             cwd=self.process_launch_info.cwd,
             start_new_session=self.start_independent_lsp_process,
-            shell=True,
+            shell=False,
         )
 
         # Check if process terminated immediately
