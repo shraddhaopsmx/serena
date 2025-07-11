@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import pathlib
-import stat
 import subprocess
 import threading
 import time
@@ -135,7 +134,7 @@ class ElixirTools(SolidLanguageServer):
 
             # Make the binary executable on Unix-like systems
             if not platformId.value.startswith("win"):
-                os.chmod(binary_path, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+                os.chmod(binary_path, 0o755)
 
             # Create a symlink or copy with the expected name
             if binary_path != executable_path:
