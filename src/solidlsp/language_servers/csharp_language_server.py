@@ -389,6 +389,43 @@ class CSharpLanguageServer(SolidLanguageServer):
                 f"Failed to download package {package_name} version {package_version} from Azure NuGet feed: {e}"
             ) from e
 
+    @staticmethod
+    def _safe_extract_tar(tar_ref: tarfile.TarFile, extract_path: Path) -> None:
+        """
+        Safely extract a tar file to prevent path traversal attacks.
+        Validates each member path before extraction.
+        """
+
+        def is_safe_path(path: str, base_path: Path) -> bool:
+            """Check if the path is safe for extraction."""
+            # Resolve the full path
+            full_path = (base_path / path).resolve()
+            base_path_resolved = base_path.resolve()
+
+            # Check if the resolved path is within the base path
+            try:
+                full_path.relative_to(base_path_resolved)
+                return True
+            except ValueError:
+                return False
+
+        # Extract each member individually with validation
+        for member in tar_ref.getmembers():
+            # Skip if member name is absolute or contains path traversal
+            if member.name.startswith("/") or ".." in member.name:
+                continue
+
+            # Check if the path is safe
+            if not is_safe_path(member.name, extract_path):
+                continue
+
+            # Skip symbolic links that could point outside the target directory
+            if member.issym() or member.islnk():
+                continue
+
+            # Extract the member
+            tar_ref.extract(member, extract_path)
+
     @classmethod
     def _ensure_dotnet_runtime_from_config(cls, logger: LanguageServerLogger, runtime_dep: RuntimeDependency) -> str:
         """
@@ -435,7 +472,7 @@ class CSharpLanguageServer(SolidLanguageServer):
             else:
                 # tar.gz
                 with tarfile.open(download_path, "r:gz") as tar_ref:
-                    tar_ref.extractall(dotnet_dir)
+                    cls._safe_extract_tar(tar_ref, dotnet_dir)
 
             # Remove the archive
             download_path.unlink()
