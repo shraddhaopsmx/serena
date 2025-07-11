@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -69,10 +70,13 @@ class RuntimeDependencyCollection:
 
     @staticmethod
     def _run_command(command: str, cwd: str) -> None:
+        # Parse command string into arguments to avoid shell injection
+        command_args = shlex.split(command)
+        
         if PlatformUtils.get_platform_id().value.startswith("win"):
             subprocess.run(
-                command,
-                shell=True,
+                command_args,
+                shell=False,
                 check=True,
                 cwd=cwd,
                 stdout=subprocess.DEVNULL,
@@ -83,8 +87,8 @@ class RuntimeDependencyCollection:
 
             user = pwd.getpwuid(os.getuid()).pw_name
             subprocess.run(
-                command,
-                shell=True,
+                command_args,
+                shell=False,
                 check=True,
                 user=user,
                 cwd=cwd,
