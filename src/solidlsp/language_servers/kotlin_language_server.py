@@ -127,7 +127,7 @@ class KotlinLanguageServer(SolidLanguageServer):
             FileUtils.download_and_extract_archive(logger, java_dependency["url"], java_dir, java_dependency["archiveType"])
             # Make Java executable
             if not platform_id.value.startswith("win-"):
-                os.chmod(java_path, 0o755)
+                os.chmod(java_path, 0o744)
 
         assert os.path.exists(java_path), f"Java executable not found at {java_path}"
 
