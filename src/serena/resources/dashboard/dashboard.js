@@ -5,6 +5,11 @@ class LogMessage {
         this.$elem = $('<div>').addClass('log-' + logLevel).html(highlightedMessage + '\n');
     }
 
+    // Helper function to escape regex special characters
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
     determineLogLevel(message) {
         if (message.startsWith('DEBUG')) {
             return 'debug';
@@ -21,8 +26,10 @@ class LogMessage {
 
     highlightToolNames(message, toolNames) {
         let highlightedMessage = message;
+        const self = this;
         toolNames.forEach(function(toolName) {
-            const regex = new RegExp('\\b' + toolName + '\\b', 'gi');
+            const escapedToolName = self.escapeRegExp(toolName);
+            const regex = new RegExp('\\b' + escapedToolName + '\\b', 'gi');
             highlightedMessage = highlightedMessage.replace(regex, '<span class="tool-name">' + toolName + '</span>');
         });
         return highlightedMessage;
