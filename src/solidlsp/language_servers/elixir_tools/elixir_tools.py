@@ -135,7 +135,7 @@ class ElixirTools(SolidLanguageServer):
 
             # Make the binary executable on Unix-like systems
             if not platformId.value.startswith("win"):
-                os.chmod(binary_path, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+                os.chmod(binary_path, 0o700)
 
             # Create a symlink or copy with the expected name
             if binary_path != executable_path:
