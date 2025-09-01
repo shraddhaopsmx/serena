@@ -19,7 +19,13 @@ class _JinjaEnvProvider:
 
     def get_env(self) -> jinja2.Environment:
         if self._env is None:
-            self._env = jinja2.Environment()
+            # Configure Jinja2 environment with explicit security settings
+            # Since we're generating AI prompts (not HTML), we use a custom autoescape function
+            # that returns False, making the security configuration explicit and intentional
+            self._env = jinja2.Environment(
+                autoescape=lambda name: False,  # Explicit: no autoescaping for prompt templates
+                finalize=lambda x: x if x is not None else "",
+            )
         return self._env
 
 
