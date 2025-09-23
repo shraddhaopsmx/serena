@@ -19,7 +19,7 @@ class _JinjaEnvProvider:
 
     def get_env(self) -> jinja2.Environment:
         if self._env is None:
-            self._env = jinja2.Environment()
+            self._env = jinja2.Environment(autoescape=jinja2.select_autoescape(), enable_async=False)
         return self._env
 
 
