@@ -19,7 +19,8 @@ class _JinjaEnvProvider:
 
     def get_env(self) -> jinja2.Environment:
         if self._env is None:
-            self._env = jinja2.Environment()
+            # Enable autoescape to prevent XSS vulnerabilities
+            self._env = jinja2.Environment(autoescape=True)
         return self._env
 
 
