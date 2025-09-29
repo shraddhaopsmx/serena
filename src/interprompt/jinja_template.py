@@ -1,3 +1,15 @@
+"""
+Jinja2 template implementation for interprompt.
+
+Security note:
+This module provides template functionality for text-based prompts and
+does not enable Jinja2's autoescape by default. When rendering content
+that will be displayed in an HTML context, always use the 'escape_html'
+filter to prevent XSS vulnerabilities:
+
+Example: {{ user_content|escape_html }}
+"""
+
 from typing import Any
 
 import jinja2
@@ -19,11 +31,23 @@ class _JinjaEnvProvider:
 
     def get_env(self) -> jinja2.Environment:
         if self._env is None:
+            # For prompts used in non-web contexts, we use autoescape=False (default),
+            # but add a custom filter for escaping HTML when needed
             self._env = jinja2.Environment()
+            # Add an 'escape_html' filter for cases where escaping is needed
+            self._env.filters["escape_html"] = lambda s: jinja2.escape(s) if isinstance(s, str) else s
         return self._env
 
 
 class JinjaTemplate(ParameterizedTemplateInterface):
+    """A template implementation using Jinja2.
+
+    For security when rendering user-provided content in HTML contexts,
+    use the `escape_html` filter in your templates:
+
+    Example: {{ user_content|escape_html }}
+    """
+
     def __init__(self, template_string: str) -> None:
         self._template_string = template_string
         self._template = _JinjaEnvProvider().get_env().from_string(self._template_string)
