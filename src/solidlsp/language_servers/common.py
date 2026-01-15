@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -69,22 +70,45 @@ class RuntimeDependencyCollection:
 
     @staticmethod
     def _run_command(command: str, cwd: str) -> None:
+        """
+        Execute a command safely without shell injection vulnerabilities.
+
+        This method was modified to address a security vulnerability where subprocess.run()
+        was called with shell=True, making it susceptible to shell injection attacks.
+
+        Security Fix:
+        - Changed shell=True to shell=False to prevent shell interpretation
+        - Added shlex.split() to safely parse command strings into argument lists
+        - This ensures commands like "npm install --prefix ./ package@1.0.0" are
+          executed as ['npm', 'install', '--prefix', './', 'package@1.0.0']
+          instead of being interpreted by the shell
+
+        Args:
+            command: Command string to execute (e.g., "npm install --prefix ./ typescript@5.5.4")
+            cwd: Working directory for command execution
+        """
+        # Parse command string into list to avoid shell injection vulnerabilities
+        # shlex.split() handles proper quoting and escaping of shell arguments
+        command_args = shlex.split(command)
+
         if PlatformUtils.get_platform_id().value.startswith("win"):
+            # Windows path: Execute command without shell interpretation
             subprocess.run(
-                command,
-                shell=True,
+                command_args,  # Use parsed argument list instead of raw string
+                shell=False,   # SECURITY: Prevents shell injection attacks
                 check=True,
                 cwd=cwd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
         else:
+            # Unix path: Execute command without shell interpretation
             import pwd
 
             user = pwd.getpwuid(os.getuid()).pw_name
             subprocess.run(
-                command,
-                shell=True,
+                command_args,  # Use parsed argument list instead of raw string
+                shell=False,   # SECURITY: Prevents shell injection attacks
                 check=True,
                 user=user,
                 cwd=cwd,
