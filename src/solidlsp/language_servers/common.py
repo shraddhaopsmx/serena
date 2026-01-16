@@ -69,10 +69,15 @@ class RuntimeDependencyCollection:
 
     @staticmethod
     def _run_command(command: str, cwd: str) -> None:
+        import shlex
+
+        # Split the command string into a list for safe execution without shell
+        cmd_args = shlex.split(command)
+
         if PlatformUtils.get_platform_id().value.startswith("win"):
             subprocess.run(
-                command,
-                shell=True,
+                cmd_args,
+                shell=False,
                 check=True,
                 cwd=cwd,
                 stdout=subprocess.DEVNULL,
@@ -83,8 +88,8 @@ class RuntimeDependencyCollection:
 
             user = pwd.getpwuid(os.getuid()).pw_name
             subprocess.run(
-                command,
-                shell=True,
+                cmd_args,
+                shell=False,
                 check=True,
                 user=user,
                 cwd=cwd,
